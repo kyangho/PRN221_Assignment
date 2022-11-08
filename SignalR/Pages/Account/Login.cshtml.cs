@@ -76,10 +76,11 @@ namespace SignalR.Pages.Account
 
             if (customer != null && !customer.IsActive.Value)
             {
+                
                 ViewData["msg"] = "Your Account Cannot Login Into System";
                 return Page();
             }
-
+            HttpContext.Session.SetInt32("CartCount", 0);
             HttpContext.Session.SetString("CustSession", JsonSerializer.Serialize(acc, new JsonSerializerOptions() { ReferenceHandler = ReferenceHandler.IgnoreCycles }));
             if (acc.Role == 1)
             {

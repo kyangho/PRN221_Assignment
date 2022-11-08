@@ -7,9 +7,7 @@ namespace SignalR.Pages.Account
     {
         public async Task<IActionResult> OnGet()
         {
-            HttpContext.Session.Remove("CustSession");
-            HttpContext.Session.Remove("IsAdmin");
-            HttpContext.Session.Remove("DeleteMessage");
+            HttpContext.Session.Clear();
             return Redirect("/Account/Login");
         }
     }

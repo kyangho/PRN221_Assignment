@@ -20,7 +20,7 @@
 
                     @if (Context.Session.GetString("CustSession") != null)
                     {
-                        <li><a href="~/Cart">Cart: @Context.Session.GetInt32("OrderCount")</a></li>
+                        <li><a href="~/Cart">Cart: @Context.Session.GetInt32("CartCount")</a></li>
                         <li><a href="~/Account/Profile">Profile</a></li>
                         <li><a href="~/Account/Logout">SignOut</a></li>
                     }

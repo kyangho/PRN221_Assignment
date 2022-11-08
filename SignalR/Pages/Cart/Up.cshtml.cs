@@ -59,7 +59,7 @@ namespace SignalR.Pages.Cart
                     list[(int)id] += 1 ;
                 }
 
-
+                HttpContext.Session.SetInt32("CartCount", list.Count);
                 HttpContext.Session.SetString("cart", JsonSerializer.Serialize(list));
                 TempData["success"] = "Quanity up successfull";
             }
