@@ -12,11 +12,7 @@ using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages()
-    .AddRazorPagesOptions(config =>
-{
-    config.Conventions.AuthorizePage("/Account/Profile", "Customer");
-});
+
 builder.Services.AddSession(otp => otp.IdleTimeout = TimeSpan.FromMinutes(5));
 builder.Services.AddDbContext<PRN221DBContext>(opt =>
 {
@@ -26,7 +22,15 @@ builder.Services.AddDbContext<PRN221DBContext>(opt =>
 builder.Services.AddAuthorization(config =>
 {
     config.AddPolicy("Customer", policyBuilder => policyBuilder.RequireClaim(ClaimTypes.Role));
+    config.AddPolicy("Admin", policyBuilder => policyBuilder.RequireClaim(ClaimTypes.Role));
 });
+
+builder.Services.AddRazorPages()
+    .AddRazorPagesOptions(config =>
+    {
+        config.Conventions.AuthorizeFolder("/Admin/Product", "Admin");
+    });
+
 builder.Services.AddSignalR();
 builder.Services.AddControllers().AddJsonOptions(x =>
                 x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
@@ -51,16 +55,7 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
 }
-app.UseStaticFiles();
-app.UseAuthentication();
-app.UseRouting();
 app.UseSession();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-app.MapRazorPages();
-app.MapHub<HubServer>("/hub");
-
 app.Use(async (context, next) =>
 {
     var token = context.Session.GetString("Token");
@@ -70,6 +65,17 @@ app.Use(async (context, next) =>
     }
     await next();
 });
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+app.MapRazorPages();
+app.MapHub<HubServer>("/hub");
+
+
 
 app.Run();
 

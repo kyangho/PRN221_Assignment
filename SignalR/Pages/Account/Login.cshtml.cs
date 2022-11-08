@@ -21,7 +21,7 @@ namespace SignalR.Pages.Account
     {
         private readonly PRN221DBContext dbContext;
         private readonly IConfiguration _config;
-
+        private string generatedToken = null;
         public LoginModel(PRN221DBContext dbContext, IConfiguration configuration)
         {
             this.dbContext = dbContext;
@@ -52,19 +52,24 @@ namespace SignalR.Pages.Account
                 return Page();
             } else
             {
-                var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
-                identity.AddClaim(new Claim(ClaimTypes.Role, acc.Role == 1 ? "Admin" : "Customer"));
-                var principal = new ClaimsPrincipal(identity);
-                var claims = new List<Claim>()
-                {
-                    new Claim(ClaimTypes.Role, acc.Role == 1 ? "Admin" : "Customer")
-                };
-                var claimsIdentity = new ClaimsIdentity(claims, "ducky");
-                await HttpContext.SignInAsync(
-                        scheme,
-                        new ClaimsPrincipal(claimsIdentity));
+                //var scheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                //var identity = new ClaimsIdentity(CookieAuthenticationDefaults.AuthenticationScheme, ClaimTypes.Name, ClaimTypes.Role);
+                //identity.AddClaim(new Claim(ClaimTypes.Role, acc.Role == 1 ? "Admin" : "Customer"));
+                //var principal = new ClaimsPrincipal(identity);
+                //var claims = new List<Claim>()
+                //{
+                //    new Claim(ClaimTypes.Role, acc.Role == 1 ? "Admin" : "Customer")
+                //};
+                //var claimsIdentity = new ClaimsIdentity(claims, "ducky");
+                //await HttpContext.SignInAsync(
+                //        scheme,
+                //        new ClaimsPrincipal(claimsIdentity
 
+                generatedToken = TokenService.BuildToken(_config["Jwt:Secret"].ToString(), _config["Jwt:ValidIssuer"].ToString(), acc);
+                if (generatedToken != null)
+                {
+                    HttpContext.Session.SetString("Token", generatedToken);
+                }
             }
 
             var customer = await dbContext.Customers.SingleOrDefaultAsync(c => c.CustomerId == acc.CustomerId);
@@ -87,7 +92,7 @@ namespace SignalR.Pages.Account
 
         private string GenerateJSONWebToken(Models.Account userInfo)
         {
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:Secret"]));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[] {
                 new Claim("Email", userInfo.Email),
@@ -95,9 +100,9 @@ namespace SignalR.Pages.Account
                 new Claim("Roles", userInfo.Role == 1 ? "Admin" : "Customer"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
-            Console.WriteLine(_configuration["JWT:Secret"]);
-            var token = new JwtSecurityToken(issuer: _configuration["JWT:ValidIssuer"],
-              audience: _configuration["JWT:ValidAudience"],
+            Console.WriteLine(_config["JWT:Secret"]);
+            var token = new JwtSecurityToken(issuer: _config["JWT:ValidIssuer"],
+              audience: _config["JWT:ValidAudience"],
               claims: claims,
               expires: DateTime.Now.AddMinutes(120),
               signingCredentials: credentials);

@@ -7,6 +7,7 @@ using System.Text.Json;
 
 namespace SignalR.Pages.Account
 {
+    [Authorize(Roles = "Customer")]
     public class ProfileModel : PageModel
     {
         private readonly PRN221DBContext dbContext;
@@ -23,28 +24,19 @@ namespace SignalR.Pages.Account
         public async Task<IActionResult> OnGetAsync()
         {
             var currentUser = HttpContext.User;
-            //if (HttpContext.Session.GetString("CustSession") == null)
-            //{
-            //    return Redirect("/Account/Login");
-            //}
-            Console.WriteLine(currentUser.Claims.Count());
-            //if (!currentUser.Claims.FirstOrDefault(c => c.Type == "Role").Value.Equals("Admin"))
-            //{
-            //    return Redirect("/Account/Login");
-            //} 
-            //if (HttpContext.Session.GetString("CustSession") == null)
-            //{
-            //    return NotFound();
-            //}
-            //Auth = JsonSerializer.Deserialize<Models.Account>(HttpContext.Session.GetString("CustSession"));
+            if (HttpContext.Session.GetString("CustSession") != null)
+            {
+                Auth = JsonSerializer.Deserialize<Models.Account>(HttpContext.Session.GetString("CustSession"));
 
-            //if (Auth == null)
-            //{
-            //    return NotFound();
-            //} else
-            //{
-            //    Auth.Customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == Auth.CustomerId);
-            //}
+                if (Auth == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    Auth.Customer = await dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == Auth.CustomerId);
+                }
+            }
 
             return Page();
         }
