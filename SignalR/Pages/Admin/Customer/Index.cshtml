@@ -1,0 +1,79 @@
+﻿@page "{currentPage:int?}"
+@model SignalR.Pages.Admin.Customer.IndexModel
+@{
+    ViewData["PageTitle"] = "Product List";
+    var pageModel = new SignalR.Helper.PageHelper()
+            {
+                pageCurrent = Model.currentPage,
+                totalPages = Model.totalPages,
+                generateUrl = (int? currentPage)
+                    => (Model.search == null)
+                    ? Url.Page("/Admin/Customer/Index", new { currentPage = currentPage })
+                    : Url.Page("/Admin/Customer/Index", new { currentPage = currentPage, search = Model.search })
+            };
+}
+<div class="path-admin">CUSTOMERS LIST</div>
+<div class="content-main">
+    <div id="content-main-dashboard">
+        <div id="product-title-header" style="margin : 0 0 30px 0;">
+            <div id="product-title-1" style="width: 25%;"></div>
+            <div id="product-title-2" style="width: 55%;">
+                <form method="get">
+                    <input asp-for="search" placeholder="Enter customer name to search" />
+                    <input asp-for="IsSearch" type="hidden" value="true" />
+                    <input type="submit" value="Search"/>
+                </form>
+            </div>
+            <div id="product-title-3" style="width: 20%;"></div>
+        </div>
+        <div id="order-table-admin">
+            @if (Model.customers == null || Model.customers.Count < 1)
+            {
+                <div style="margin: 1% 2%;" class="msg-error">Not found cutomer(s)!</div>
+            }
+            else
+            {
+
+                <table id="orders">
+                    <tr>
+                        <th>CustomerID</th>
+                        <th>CompanyName</th>
+                        <th>ContactName</th>
+                        <th>ContactTitle</th>
+                        <th>Address</th>
+                        <th>CreatedDate</th>
+                        <th></th>
+                    </tr>
+                    @foreach (var c in Model.customers)
+                    {
+                        <tr>
+                            <td>@c.CustomerId</td>
+                            <td>@c.CompanyName</td>
+                            <td>@c.ContactName</td>
+                            <td>@c.ContactTitle</td>
+                            <td>@c.Address</td>
+                            <td>@c.CreatedDate</td>
+                            <td>
+                                @if (c.IsActive.Value)
+                                {
+                                    <a asp-page="Index" asp-page-handler="Deactive" asp-route-cid="@c.CustomerId">Deactive</a>
+                                }
+                                else
+                                {
+                                    <a asp-page="Index" asp-page-handler="Active" asp-route-cid="@c.CustomerId">Active</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+
+                </table>
+            }
+        </div>
+        <div id="paging">
+            <partial name="_Paging" model="@pageModel" />
+        </div>
+    </div>
+</div>
+
+
+

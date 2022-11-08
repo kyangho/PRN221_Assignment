@@ -1,0 +1,121 @@
+﻿@page "{currentPage:int?}"
+@model SignalR.Pages.Product.IndexModel
+@{
+    ViewData["PageTitle"] = "Product List";
+    var pageModel = new SignalR.Helper.PageHelper()
+            {
+                pageCurrent = Model.currentPage,
+                totalPages = Model.totalPages,
+                generateUrl = (int? currentPage)
+                    => (Model.categoryChoose <= 0 && Model.search == null)
+                    ? Url.Page("/Admin/Product/Index", new { currentPage = currentPage })
+                    : Url.Page("/Admin/Product/Index", new { currentPage = currentPage, search = Model.search, categoryChoose = Model.categoryChoose })
+            };
+}
+<div class="path-admin">PRODUCTS LIST</div>
+<div class="content-main">
+    <div id="content-main-dashboard">
+        @if (HttpContext.Session.GetString("DeleteMessage") != null)
+        {
+            <p style="color : red;"> @HttpContext.Session.GetString("DeleteMessage") </p>
+        }
+        <div id="product-title-header" style="margin-bottom : 15px;">
+            <div id="product-title-1" style="width: 25%;">
+                <b>Filter by Catetory:</b>
+                <form method="get">
+                    <select asp-for="categoryChoose">
+                        <option value="-1">--- Select ---</option>
+                        @foreach (var cate in Model.Categories)
+                        {
+                            int id = @cate.CategoryId;
+                            <option value="@cate.CategoryId">@cate.CategoryName</option>
+                        }
+                    </select>
+                    <input asp-for="search" value="@Model.search" hidden>
+                    <input type="hidden" value="true" asp-for="IsFilter" />
+                    <input type="submit" value="Filter">
+                </form>
+            </div>
+            <div id="product-title-2" style="width: 55%;">
+                <form method="get">
+                    <input asp-for="categoryChoose" value="@Model.categoryChoose" hidden>
+                    <input type="hidden" value="true" asp-for="IsFilter" />
+                    <input asp-for="search" placeholder="Enter product name to search" />
+                    <input type="submit" value="Search" />
+                </form>
+            </div>
+            <div id="product-title-3" style="width: 20%;">
+                <a href="~/Admin/Product/CreateProduct">Create a new Product</a>
+                <form method="post" enctype="multipart/form-data" asp-page="Index" asp-page-handler="Import">
+                    <label for="upload">Import .xls or .xlsx file</label>
+                    <input id="upload" type="file" name="file" />
+                    <input type="submit" id="btnUpload" value="Import" onclick="return CheckFile()" />
+                </form>
+                <a asp-page="Index" asp-page-handler="Export">
+                    Export to .xls or .xlsx file
+                </a>
+            </div>
+        </div>
+        <div id="order-table-admin">
+            @if (Model.products == null || Model.products.Count < 1)
+            {
+                <div style="margin: 1% 2%;" class="msg-error">Not found product(s)!</div>
+            }
+            else
+            {
+
+                <table id="orders">
+                    <tr>
+                        <th>ProductID</th>
+                        <th>ProductName</th>
+                        <th>UnitPrice</th>
+                        <th>Unit</th>
+                        <th>UnitsInStock</th>
+                        <th>Category</th>
+                        <th>Discontinued</th>
+                        <th></th>
+                    </tr>
+                    @foreach (var p in Model.products)
+                    {
+                        <tr>
+                            <td><a href="#">@p.ProductId</a></td>
+                            <td>@p.ProductName</td>
+                            <td>@p.UnitPrice</td>
+                            <td>@p.QuantityPerUnit</td>
+                            <td>@p.UnitsInStock</td>
+                            <td>@p.Category.CategoryName</td>
+                            <td>@p.Discontinued</td>
+                            <td>
+                                <a href="~/Admin/Product/Update?id=@p.ProductId">Edit</a> &nbsp; | &nbsp;
+                                <a href="~/Admin/Product/Delete?id=@p.ProductId">Delete</a>
+                            </td>
+                        </tr>
+                    }
+
+                </table>
+            }
+        </div>
+        <div id="paging">
+            <partial name="_Paging" model="@pageModel" />
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    function CheckFile(){
+        var fileExtension = ['xls', 'xlsx'];
+        var filename = $('#upload').val();
+        if (filename.length == 0) {
+            alert("Please select a file.");
+            return false;
+        }
+        else {
+            var extension = filename.replace(/^.*\./, '');
+            if ($.inArray(extension, fileExtension) == -1) {
+
+                alert("Please select only excel files.");
+                return false;
+            }
+        }
+   }
+</script>
+
